@@ -1,9 +1,10 @@
 import _ from "lodash";
-import React from "react";
+import PropTypes from "prop-types";
 
-const Pagination = ({ currentPage, pageSize, moviesCount, onPageChange }) => {
-  const pagesCount = Math.ceil(moviesCount / pageSize + 1);
-  const pages = _.range(1, pagesCount);
+const Pagination = ({ currentPage, pageSize, itemsCount, onPageChange }) => {
+  const pagesCount = Math.ceil(itemsCount / pageSize);
+  if (pagesCount === 1) return null;
+  const pages = _.range(1, pagesCount + 1);
   return (
     <nav aria-label="Page navigation example">
       <ul className="pagination">
@@ -20,6 +21,13 @@ const Pagination = ({ currentPage, pageSize, moviesCount, onPageChange }) => {
       </ul>
     </nav>
   );
+};
+
+Pagination.propTypes = {
+  itemsCount: PropTypes.number.isRequired,
+  currentPage: PropTypes.number.isRequired,
+  pageSize: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
 };
 
 export default Pagination;

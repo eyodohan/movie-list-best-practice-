@@ -1,13 +1,25 @@
-import React, { useState } from "react";
-import Like from "../common/like";
+import _ from "lodash";
+import React, { useEffect, useState } from "react";
+import ListGroup from "../common/listGroup";
 import Pagination from "../common/pagination";
+import { getGenres } from "../services/fakeGenreService";
 import { getMovies } from "../services/fakeMovieService";
 import { paginate } from "../utils/paginate";
+import MoviesTable from "./MoviesTable";
 
 const Movies = () => {
-  const [movies, setMovies] = useState(getMovies());
+  const [movies, setMovies] = useState([]);
   const [pageSize, setPageSize] = useState(4);
   const [currentPage, setCurrentPage] = useState(1);
+  const [genres, setGenres] = useState([]);
+  const [selectedGenre, setSelectedGenre] = useState("");
+  const [sortColumn, setSortColumn] = useState({ path: "title", order: "asc" });
+
+  useEffect(() => {
+    setMovies(getMovies());
+    const allGenres = [{ _id: "", name: "All Genres" }, ...getGenres()];
+    setGenres(allGenres);
+  }, []);
 
   const handleDelete = (movie) => {
     const newMovies = movies.filter((m) => m._id !== movie._id);
@@ -25,60 +37,64 @@ const Movies = () => {
     setCurrentPage(page);
   };
 
-  const paginatedMovies = paginate(movies, currentPage, pageSize);
+  const handleGenreSelect = (genre) => {
+    setSelectedGenre(genre);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (sortedColumn) => {
+    setSortColumn(sortedColumn);
+  };
+
+  const filteredMoviesByGenre =
+    selectedGenre && selectedGenre._id
+      ? movies.filter((filtered) => filtered.genre._id === selectedGenre._id)
+      : movies;
+
+  const paginatedMovies = paginate(
+    filteredMoviesByGenre,
+    currentPage,
+    pageSize
+  );
+
+  const sorted = _.orderBy(
+    paginatedMovies,
+    [sortColumn.path],
+    [sortColumn.order]
+  );
 
   return (
-    <>
-      {movies.length === 0 ? (
-        <p>There are no movies in the database</p>
-      ) : (
-        <>
-          <p>Showing {movies.length} movies in the database.</p>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Genre</th>
-                <th>Stock</th>
-                <th>Rate</th>
-                <th></th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedMovies.map((movie) => (
-                <tr key={movie._id}>
-                  <td>{movie.title}</td>
-                  <td>{movie.genre.name}</td>
-                  <td>{movie.numberInStock}</td>
-                  <td>{movie.dailyRentalRate}</td>
-                  <td>
-                    <Like
-                      liked={movie.liked}
-                      onClick={() => handleLike(movie)}
-                    />
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(movie)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <Pagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            moviesCount={movies.length}
-            onPageChange={handlePageChange}
-          />
-        </>
-      )}
-    </>
+    <div className="row">
+      <div className="col-3">
+        <ListGroup
+          items={genres}
+          onItemSelect={handleGenreSelect}
+          selectedItem={selectedGenre}
+        />
+      </div>
+      <div className="col">
+        {movies.length === 0 ? (
+          <p>There are no movies in the database</p>
+        ) : (
+          <>
+            <p>Showing {paginatedMovies.length} movies in the database.</p>
+            <MoviesTable
+              movies={sorted}
+              sortColumn={sortColumn}
+              onLike={handleLike}
+              onDelete={handleDelete}
+              onSort={handleSort}
+            />
+            <Pagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              itemsCount={filteredMoviesByGenre.length}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
