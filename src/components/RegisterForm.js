@@ -1,68 +1,68 @@
 import React, { useState } from "react";
 import Joi from "joi-browser";
 import Input from "../common/Input";
-import { login } from "../services/authService";
-import { useLocation, useNavigate } from "react-router";
+import * as userService from "../services/userService";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
-const LoginForm = () => {
-  const [data, setData] = useState({ username: "", password: "" });
+const RegisterForm = () => {
+  const [data, setData] = useState({ username: "", password: "", name: "" });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const location = useLocation();
 
   const schema = {
-    username: Joi.string().required().label("Username"),
-    password: Joi.string().required().label("Password"),
+    username: Joi.string().required().email().label("Username"),
+    password: Joi.string().required().min(5).label("Password"),
+    name: Joi.string().required().label("Name"),
   };
 
   const validateProperty = (input) => {
     const obj = { [input.name]: input.value };
     const subSchema = { [input.name]: schema[input.name] };
     const result = Joi.validate(obj, subSchema);
-    // console.log(result);
     return result.error ? result.error.details[0].message : null;
   };
 
   const validate = () => {
     const options = { abortEarly: false };
     const result = Joi.validate(data, schema, options);
-    // console.log(result)
     const newErrors = { ...errors };
-
-    if (!result.error) return null;
-
-    result.error.details.map(
-      (error) => (newErrors[error.path[0]] = error.message)
-    );
-    return newErrors;
+    if (result.error) {
+      result.error.details.map(
+        (item) => (newErrors[item.path[0]] = item.message)
+      );
+      return newErrors;
+    }
   };
 
   const disabled = validate();
 
   const handleChange = ({ target: input }) => {
-    const newErrors = { ...errors };
+    const newError = { ...errors };
     const errorMessage = validateProperty(input);
-    if (errorMessage) newErrors[input.name] = errorMessage;
-    else delete newErrors[input.name];
-    setErrors(newErrors);
+    errorMessage
+      ? (newError[input.name] = errorMessage)
+      : delete newError[input.name];
+    setErrors(newError);
 
-    const newdata = { ...data };
-    newdata[input.name] = input.value;
-    setData(newdata);
+    const userData = { ...data };
+    userData[input.name] = input.value;
+    setData(userData);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = validate();
-    if (newErrors) return setErrors(newErrors);
+    const newError = validate();
+    if (newError) return setErrors(newError);
+
     doSubmit();
   };
 
   const doSubmit = async () => {
     try {
-      const { data: jwt } = await login(data.username, data.password);
-      // console.log(jwt);
-      localStorage.setItem("token", jwt);
+      const response = await userService.register(data);
+      // console.log(response);
+      localStorage.setItem("token", response.headers["x-auth-token"]);
       window.location = "/";
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -75,12 +75,12 @@ const LoginForm = () => {
 
   return (
     <div>
-      <h1>Login</h1>
+      <h1>Register</h1>
       <form onSubmit={handleSubmit}>
         <Input
           name="username"
           label="Username"
-          type="text"
+          type="email"
           value={data.username}
           error={errors?.username}
           onChange={handleChange}
@@ -93,12 +93,20 @@ const LoginForm = () => {
           error={errors?.password}
           onChange={handleChange}
         />
+        <Input
+          name="name"
+          label="Name"
+          type="text"
+          value={data.name}
+          error={errors?.name}
+          onChange={handleChange}
+        />
         <button className="btn btn-primary" disabled={disabled}>
-          Login
+          Register
         </button>
       </form>
     </div>
   );
 };
 
-export default LoginForm;
+export default RegisterForm;

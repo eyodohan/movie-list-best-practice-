@@ -1,8 +1,7 @@
-import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { navbarItems } from "../assets/navbarItems";
+import { logout, login } from "../assets/navbarItems";
 
-const Navbar = () => {
+const Navbar = ({ user }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid">
@@ -22,17 +21,29 @@ const Navbar = () => {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav">
-            {navbarItems.map((item) => (
-              <li key={item.path} className="nav-item">
-                <NavLink
-                  className="nav-link"
-                  aria-current="page"
-                  to={item.path}
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
+            {user
+              ? login(user.name).map((navbarItem) => (
+                  <li className="nav-item">
+                    <NavLink
+                      className="nav-link"
+                      aria-current="page"
+                      to={navbarItem.path}
+                    >
+                      {navbarItem.label}
+                    </NavLink>
+                  </li>
+                ))
+              : logout.map((navbarItem) => (
+                  <li className="nav-item">
+                    <NavLink
+                      className="nav-link"
+                      aria-current="page"
+                      to={navbarItem.path}
+                    >
+                      {navbarItem.label}
+                    </NavLink>
+                  </li>
+                ))}
           </ul>
         </div>
       </div>

@@ -1,14 +1,26 @@
-import _ from "lodash";
-import React from "react";
+import { useEffect, useState } from "react";
+import { ToastContainer } from "react-toastify";
 import { Routes, Route } from "react-router";
+import jwtDecode from "jwt-decode";
 import { routes } from "./assets/routes";
-import Movies from "./components/Movies";
 import Navbar from "./components/Navbar";
+import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const jwt = localStorage.getItem("token");
+      const userData = jwtDecode(jwt);
+      console.log(userData);
+      setUser(userData);
+    } catch (error) {}
+  }, []);
   return (
     <>
-      <Navbar />
+      <ToastContainer />
+      <Navbar user={user} />
       <div className="container mt-3">
         <Routes>
           {routes.map((route) => (
