@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Joi from "joi-browser";
 import Input from "../common/Input";
-import { login } from "../services/authService";
+import auth from "../services/authService";
 import { useLocation, useNavigate } from "react-router";
 
 const LoginForm = () => {
@@ -9,6 +9,7 @@ const LoginForm = () => {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
+  const from = location.state.from.pathname;
 
   const schema = {
     username: Joi.string().required().label("Username"),
@@ -26,7 +27,7 @@ const LoginForm = () => {
   const validate = () => {
     const options = { abortEarly: false };
     const result = Joi.validate(data, schema, options);
-    // console.log(result)
+    console.log(result);
     const newErrors = { ...errors };
 
     if (!result.error) return null;
@@ -60,10 +61,11 @@ const LoginForm = () => {
 
   const doSubmit = async () => {
     try {
-      const { data: jwt } = await login(data.username, data.password);
-      // console.log(jwt);
-      localStorage.setItem("token", jwt);
-      window.location = "/";
+      await auth.login(data.username, data.password);
+
+      // navigate(location.state.from, { replace: true });
+      console.log("window" + from);
+      window.location = from || "/";
     } catch (error) {
       if (error.response && error.response.status === 400) {
         const err = { ...errors };

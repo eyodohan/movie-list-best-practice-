@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Joi from "joi-browser";
 import Input from "../common/Input";
 import * as userService from "../services/userService";
-import { toast } from "react-toastify";
+import auth from "../services/authService";
 import { useNavigate } from "react-router";
 
 const RegisterForm = () => {
@@ -62,7 +62,7 @@ const RegisterForm = () => {
     try {
       const response = await userService.register(data);
       // console.log(response);
-      localStorage.setItem("token", response.headers["x-auth-token"]);
+      auth.loginWithJwt(response.headers["x-auth-token"]);
       window.location = "/";
     } catch (error) {
       if (error.response && error.response.status === 400) {

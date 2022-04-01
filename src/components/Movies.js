@@ -5,15 +5,13 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import ListGroup from "../common/listGroup";
 import Pagination from "../common/pagination";
-// import { getGenres } from "../services/fakeGenreService";
-// import { getMovies } from "../services/fakeMovieService";
 import { getGenres } from "../services/genreService";
 import { getMovies, deleteMovie } from "../services/movieService";
 import { paginate } from "../utils/paginate";
 import MoviesTable from "./MoviesTable";
 import SearchBar from "./SearchBar";
 
-const Movies = () => {
+const Movies = ({ user }) => {
   const [movies, setMovies] = useState([]);
   const [pageSize, setPageSize] = useState(4);
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,12 +19,6 @@ const Movies = () => {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [sortColumn, setSortColumn] = useState({ path: "title", order: "asc" });
   const [searchQuery, setSearchQuery] = useState("");
-
-  // useEffect(() => {
-  //   setMovies(getMovies());
-  //   const allGenres = [{ _id: "", name: "All Genres" }, ...getGenres()];
-  //   setGenres(allGenres);
-  // }, []);
 
   const populateGenres = async () => {
     const { data } = await getGenres();
@@ -130,13 +122,15 @@ const Movies = () => {
         />
       </div>
       <div className="col">
-        <Link
-          to="/movies/new"
-          className="btn btn-primary"
-          style={{ marginBottom: 20 }}
-        >
-          New Movie
-        </Link>
+        {user && (
+          <Link
+            to="/movies/new"
+            className="btn btn-primary"
+            style={{ marginBottom: 20 }}
+          >
+            New Movie
+          </Link>
+        )}
         {movies.length === 0 ? (
           <p>There are no movies in the database</p>
         ) : (

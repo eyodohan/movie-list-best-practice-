@@ -23,7 +23,7 @@ const Navbar = ({ user }) => {
           <ul className="navbar-nav">
             {user
               ? login(user.name).map((navbarItem) => (
-                  <li className="nav-item">
+                  <li key={navbarItem.path} className="nav-item">
                     <NavLink
                       className="nav-link"
                       aria-current="page"
@@ -34,7 +34,7 @@ const Navbar = ({ user }) => {
                   </li>
                 ))
               : logout.map((navbarItem) => (
-                  <li className="nav-item">
+                  <li key={navbarItem.path} className="nav-item">
                     <NavLink
                       className="nav-link"
                       aria-current="page"
